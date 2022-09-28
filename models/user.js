@@ -3,30 +3,41 @@ const mongoose = require("mongoose");
 
 const userShema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true
+ 
+    timestamp_property: {
+      type: Date,
+      default: new Date()
     },
     records : {
-        type: Number,
+        type: String,
         default: 0
-    },
-    image : {
-        type: String
     }
-    
+   
   },
   {
-    timestamps: true
+    timeseries: {
+      timeField: 'timestamp_property',
+      granularity: 'minutes',
+    },
   }
 );
 
 
-const User = mongoose.model('User', userShema);
+const userEmail = new mongoose.Schema({
+  email: {
+    type:String,
+    required:true
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  image : {
+    type: String
+  }
+})
 
-module.exports = User;
+
+const User = mongoose.model('User', userEmail);
+
+module.exports = {userShema, User} ;

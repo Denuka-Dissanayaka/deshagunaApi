@@ -1,26 +1,32 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require("mongoose");
 
-const User = require('../models/user');
+
+const {userShema, User} = require('../models/user');
 
 
 router.post('/', async (req, res) => {
     try {
+        
         const {name, email, image} = req.body;
-        const oldUser = await User.findOne({email});
-        if(oldUser) {
+        // check user already exist
+        const userExist = await User.findOne({email});
+        if(userExist) {
             return res.status(400).send('user already exist.. Please login')
         } else {
-            const newUser = new User({
-                name,
-                email,
-                image
-            })
-
+            const newUser = new User({email, name, image})
             const user = await newUser.save();
+
+            // create time series collection
+            const recordModel = mongoose.model(email, userShema, email);
             
-            res.status(201).json({user});
+            res.json({user});
         }
+        
+        
+    
+
     } catch(err) {
             console.log('error');
             console.log(err);

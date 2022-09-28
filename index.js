@@ -18,8 +18,12 @@ mongoose
     console.log(err.message);
   });
 
+
+
+
+
 app.use((req, res, next) => {
-  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Origin", "*"); 
   res.set("Access-Control-Allow-Headers", "*");
   res.set("Access-Control-Allow-Methods", "*");
   if (res.method == "OPTIONS") {
@@ -30,7 +34,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({extended: true})); 
 
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/records', recordRoutes);
