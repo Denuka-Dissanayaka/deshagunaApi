@@ -43,6 +43,8 @@ router.post('/', async (req, res) => {
     }
 })
 
+
+
 router.get('/', async (req, res) => {
     try {
         const db = getDbConnection('desha');
@@ -51,9 +53,36 @@ router.get('/', async (req, res) => {
         if(!users) {
             return res.status(400).send('No users')
         } else {
+            const newUserList = [];
+            const setUser = async (user) => {
+                
+                const recordsArray = await db.collection(user.email).find({}).toArray();
+                
+                const numOfRecords = recordsArray.length;
+                
+                const newUser = {
+                    email: user.email,
+                    name: user.name,
+                    image: user.image,
+                    _id: user._id,
+                    numOfRecords
+                }
+                
+                return newUser;
+            }
             
+            const pushArray = async () => {
+                for(let i = 0; i < users.length; i++) {
+                    const j = await setUser(users[i])
+                    console.log(j)
+                    newUserList.push(j);
+                }
+                res.status(201).json({users : newUserList});
+            }
+            pushArray();
             
-            res.status(201).json({users});
+           
+            
         }
     } catch(err) {
             console.log('error');
