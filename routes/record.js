@@ -1,40 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
-const { MongoClient } = require('mongodb');
 
-const {User, userShema} = require('../models/user')
-const Record = require('../models/record');
+const {getDbConnection} = require('../db');
+
 
 
 router.post('/', async(req, res) => {
     try {
-        const {record, email, name, image} = req.body;
+        const {record, email} = req.body;
+        const db = getDbConnection('desha');
         
-        // check user
-        const user = await User.findOne({email});
-        if(!user) {
-            const newUser = new User({email, name, image})
-            await newUser.save();
-
-            //create time series collection
-            const recordModel = mongoose.model(email, userShema, email);
-        }
-
-        const client = new MongoClient(process.env.DATABASE_URL);
-        await client.connect();
-        const db = client.db('desha');
-        const collection = db.collection(email);
-        const insertResult = await collection.insertOne({
+        const result = await db.collection(email).insertOne({
             timestamp_property: new Date(),
-            records: record
+            record: record
         });
-        //console.log(insertResult)
-        client.close();
-
-       
-            
-        res.status(201).json('save record');
+        res.status(201).json({result});
         
     } catch(err) {
             console.log('error');
@@ -48,14 +28,9 @@ router.post('/', async(req, res) => {
 router.get('/:email', async(req, res) => {
     try {
         const {email} = req.params;
-        //console.log(email);
-        const client = new MongoClient(process.env.DATABASE_URL);
-        await client.connect();
-        const db = client.db('desha');
+        const db = getDbConnection('desha');
         const records = await db.collection(email).find({}).toArray();
         
-        //console.log(records)
-        client.close();
         res.status(200).json({records});
  
     } catch(err) {
@@ -70,14 +45,12 @@ router.get('/:email', async(req, res) => {
 router.delete("/:email", async (req, res) => {
     try {
         const {email} = req.params;
-        const client = new MongoClient(process.env.DATABASE_URL);
-        await client.connect();
-        const db = client.db('desha');
-        const record = await db.collection(email).drop();
+        const db = getDbConnection('desha');
         
+        const record = await db.collection(email).drop();
+        await db.collection('users').deleteOne({email})
        
-        client.close();
-        await User.findOneAndDelete({email});
+        
 
         if (!record) {
             return res.status(404).json({message:'records not found'});

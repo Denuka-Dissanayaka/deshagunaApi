@@ -1,5 +1,6 @@
 const express = require("express");
-const mongoose = require("mongoose");
+const {initializeDbConnection} = require('./db')
+//const mongoose = require("mongoose");
 //const cors = require("cors");
 require("dotenv").config();
 const app = express();
@@ -9,17 +10,23 @@ const app = express();
 const userRoutes = require('./routes/user');
 const recordRoutes = require('./routes/record');
 
-mongoose
-  .connect(process.env.DATABASE_URL)
-  .then(() => {
-    console.log("Database connected");
-  })
-  .catch((err) => {
-    console.log(err.message);
-  });
+// mongoose
+//   .connect(process.env.DATABASE_URL)
+//   .then(() => {
+//     console.log("Database connected");
+//   })
+//   .catch((err) => {
+//     console.log(err.message);
+//   });
 
 
-
+initializeDbConnection()
+    .then(() => {
+      console.log("Database connected");
+    })
+    .catch((err) => {
+      console.log(err);
+    })
 
 
 app.use((req, res, next) => {

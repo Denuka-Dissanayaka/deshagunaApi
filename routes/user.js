@@ -1,27 +1,34 @@
 const express = require('express');
 const router = express.Router();
-const mongoose = require("mongoose");
+const {getDbConnection} = require('../db');
 
-
-const {userShema, User} = require('../models/user');
 
 
 router.post('/', async (req, res) => {
     try {
         
         const {name, email, image} = req.body;
+        const db = getDbConnection('desha');
         // check user already exist
-        const userExist = await User.findOne({email});
-        if(userExist) {
-            return res.status(400).send('user already exist.. Please login')
-        } else {
-            const newUser = new User({email, name, image})
-            const user = await newUser.save();
-
-            // create time series collection
-            const recordModel = mongoose.model(email, userShema, email);
+        const user = await db.collection('users').findOne({email});
+        if(user) {
             
-            res.json({user});
+            return res.sendStatus(409);
+        } else {
+            db.createCollection(email, {
+                timeseries: {
+                    timeField: 'timestamp_property',
+                    granularity: 'minutes',
+                  }
+            })
+
+            const result = await db.collection('users').insertOne({
+                email,
+                name,
+                image
+            })
+            
+            res.json({result});  
         }
         
         
@@ -38,8 +45,9 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
+        const db = getDbConnection('desha');
+        const users = await db.collection('users').find({}).toArray();
         
-        const users = await User.find();
         if(!users) {
             return res.status(400).send('No users')
         } else {
